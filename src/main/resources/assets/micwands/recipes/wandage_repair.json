@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "micwands:g_wands1",
+  "ingredients": [
+    { "item": "micwands:wandage", "data": 32767 },
+    { "item": "minecraft:experience_bottle" }
+  ],
+  "result": {
+    "item": "micwands:wandage"
+  }
+}

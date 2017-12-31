@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "micwands:g_wands5",
+  "ingredients": [
+    { "item": "micwands:wandpacify", "data": 32767 },
+    { "item": "minecraft:experience_bottle" }
+  ],
+  "result": {
+    "item": "micwands:wandpacify"
+  }
+}

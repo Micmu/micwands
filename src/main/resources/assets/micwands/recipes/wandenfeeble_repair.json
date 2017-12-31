@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "micwands:g_wands2",
+  "ingredients": [
+    { "item": "micwands:wandenfeeble", "data": 32767 },
+    { "item": "minecraft:experience_bottle" }
+  ],
+  "result": {
+    "item": "micwands:wandenfeeble"
+  }
+}

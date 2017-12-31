@@ -1,0 +1,6 @@
+{
+  "parent": "micwands:item/wand",
+  "textures": {
+    "layer0": "micwands:items/wandfire"
+  }
+}

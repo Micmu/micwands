@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "group": "micwands:g_wands2",
+  "pattern": [
+    " B ",
+    "TXT",
+    " S "
+  ],
+  "key": {
+    "B": { "item": "minecraft:experience_bottle" },
+    "T": { "item": "minecraft:ghast_tear" },
+    "S": { "item": "minecraft:blaze_rod" },
+    "X": { "ore": "gemDiamond", "type": "forge:ore_dict" }
+  },
+  "result": {
+    "item": "micwands:wandenfeeble"
+  }
+}
