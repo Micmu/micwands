@@ -53,7 +53,7 @@ final class EventHandlers {
      * 
      * @param event
      */
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onPlayerEntityInteract(PlayerInteractEvent.EntityInteract event) {
         if ((event.getSide() == Side.SERVER) && (event.getHand() == EnumHand.MAIN_HAND) && (event.getTarget() instanceof EntityLivingBase)) {
             final ItemStack stack = event.getEntityPlayer().getHeldItem(EnumHand.MAIN_HAND);
@@ -74,7 +74,7 @@ final class EventHandlers {
      * @param event
      */
     @SuppressWarnings("deprecation")
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onClientChatReceived(ClientChatReceivedEvent event) {
         if (event.getType() == ChatType.GAME_INFO) {
             ITextComponent msg = event.getMessage();

@@ -39,15 +39,16 @@ import net.minecraft.potion.PotionEffect;
  * @author Micmu
  */
 public class WandsCore {
+    // @formatter:off
+    public static final String NBT_KEY_B_PACIFIED             = "Pacified";
+    public static final String NBT_KEY_B_PERMANENT_FIRE       = "PermanentFire";
+    public static final String NBT_KEY_I_ORIGINAL_AGE         = "OriginalAge";
+    public static final String NBT_KEY_S_FOLLOW_PLAYER        = "FollowPlayer";
+    public static final String NBT_KEY_S_FOLLOW_LAST_PLAYER   = "FollowLastPlayer";
+    public static final String NBT_KEY_L_FOLLOW_LAST_TIME     = "FollowLastTime";
+    // @formatter:on
+
     private static final WandsCore INSTANCE = new WandsCore();
-
-    public static final String NBT_KEY_B_PACIFIED = "Pacified";
-    public static final String NBT_KEY_B_PERMANENT_FIRE = "PermanentFire";
-    public static final String NBT_KEY_I_ORIGINAL_AGE = "OriginalAge";
-    public static final String NBT_KEY_S_FOLLOW_PLAYER = "FollowPlayer";
-    public static final String NBT_KEY_S_FOLLOW_LAST_PLAYER = "FollowLastPlayer";
-    public static final String NBT_KEY_L_FOLLOW_LAST_TIME = "FollowLastTime";
-
     private static final int PARMANENT_BABY_MAX_AGE = -500000000;
 
     /**
