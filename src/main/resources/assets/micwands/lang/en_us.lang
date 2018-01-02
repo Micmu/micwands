@@ -17,7 +17,6 @@ msg.micwands.pacify.0=%s is already pacified.
 msg.micwands.fire.1=%s has been set on permanent fire!
 msg.micwands.fire.0=%s has been extinguished.
 msg.micwands.resetname=%s's name metadata has been reset.
-msg.micwands.err.notenfeebled=Creature needs to be enfeebled before it can be pacified!
 msg.micwands.err.notowner=This creature is already being owned by someone else.
 msg.micwands.err.tamed=This creature is already tamed and owned by you.
 msg.micwands.err.fireimmune=This wand can not be used on a creature immune to fire.

@@ -2,7 +2,7 @@
 {
   "modid": "micwands",
   "name": "Mob Control Wands",
-  "description": "Magic wands to control and enchant mobs permanently (make them silent, stay baby, follow you, turn into pets...)",
+  "description": "6 magic wands to control and enchant mobs permanently (make them silent, stay baby, follow you, turn hostile mobs into pets...)",
   "version": "${version}",
   "mcversion": "1.12",
   "url": "https://www.curseforge.com/minecraft/mc-mods/mob-control-wands",

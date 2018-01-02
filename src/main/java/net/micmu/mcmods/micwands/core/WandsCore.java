@@ -314,8 +314,6 @@ public class WandsCore {
         if (pacify) {
             if ((v == 0.0D) && mob.getEntityData().getBoolean(NBT_KEY_B_PACIFIED))
                 return 0;
-            if (!isEnfeebled(mob))
-                return -2;
         } else if (v == 0.0D) {
             return 0;
         }

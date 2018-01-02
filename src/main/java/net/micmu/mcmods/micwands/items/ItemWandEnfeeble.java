@@ -35,11 +35,7 @@ public class ItemWandEnfeeble extends ItemWand {
         if (pacify ? wc.canPacify(entity) : wc.canEnfeeble(entity)) {
             int r = pacify ? wc.wandPacify(entity) : wc.wandEnfeeble(entity);
             if (r < 0) {
-                if (r == -2) {
-                    player.sendStatusMessage(new TextComponentTranslation("msg.micwands.err.notenfeebled"), true);
-                } else {
-                    player.sendStatusMessage(new TextComponentTranslation("msg.micwands.err.worksonly", new TextComponentTranslation("msg.micwands.err.named")), true);
-                }
+                player.sendStatusMessage(new TextComponentTranslation("msg.micwands.err.worksonly", new TextComponentTranslation("msg.micwands.err.named")), true);
                 return 0;
             }
             player.sendStatusMessage(new TextComponentTranslation("msg.micwands." + (pacify ? "pacify." : "enfeeble.") + r, entity.getName()), true);
