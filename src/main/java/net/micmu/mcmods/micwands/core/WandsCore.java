@@ -1,6 +1,9 @@
 package net.micmu.mcmods.micwands.core;
 
+import java.lang.reflect.Field;
 import java.util.UUID;
+
+import com.google.common.base.Predicate;
 
 import net.minecraft.entity.EntityAgeable;
 import net.minecraft.entity.EntityCreature;
@@ -14,12 +17,15 @@ import net.minecraft.entity.ai.EntityAICreeperSwell;
 import net.minecraft.entity.ai.EntityAIFollowOwner;
 import net.minecraft.entity.ai.EntityAILeapAtTarget;
 import net.minecraft.entity.ai.EntityAIMoveTowardsRestriction;
+import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 import net.minecraft.entity.ai.EntityAIPanic;
 import net.minecraft.entity.ai.EntityAITasks;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.boss.EntityWither;
 import net.minecraft.entity.monster.EntityGolem;
+import net.minecraft.entity.monster.EntityIronGolem;
+import net.minecraft.entity.monster.EntitySnowman;
 import net.minecraft.entity.monster.EntitySpellcasterIllager;
 import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.monster.IMob;
@@ -33,6 +39,9 @@ import net.minecraft.init.MobEffects;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.potion.PotionEffect;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
+
+import net.micmu.mcmods.micwands.MicWandsMod;
 
 /**
  *
@@ -51,6 +60,10 @@ public class WandsCore {
     private static final WandsCore INSTANCE = new WandsCore();
     private static final int PARMANENT_BABY_MAX_AGE = -500000000;
 
+    private Field f_targetEntitySelector = null;
+    private boolean failed_targetEntitySelector = false;
+    private int errc_targetEntitySelector = 0;
+
     /**
      *
      * @return
@@ -60,7 +73,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
@@ -69,7 +82,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
@@ -82,7 +95,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
@@ -91,7 +104,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
@@ -116,20 +129,20 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
     public boolean isEnfeebled(EntityLivingBase entity) {
         if ((entity instanceof EntityLiving) && ((EntityLiving)entity).isNoDespawnRequired() && (entity instanceof IMob)) {
             final IAttributeInstance dmg = entity.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
-            return (dmg != null) && (dmg.getBaseValue() == 0.0D) && entity.hasCustomName();
+            return (dmg != null) && (dmg.getBaseValue() == 0.0D);
         }
         return false;
     }
 
     /**
-     * 
+     *
      * @return
      */
     public boolean canEnfeeble(EntityLivingBase entity) {
@@ -137,7 +150,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
@@ -146,20 +159,20 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
     public boolean isPacified(EntityLivingBase entity) {
         if ((entity instanceof EntityLiving) && ((EntityLiving)entity).isNoDespawnRequired() && (entity instanceof IMob)) {
             final IAttributeInstance dmg = entity.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
-            return (dmg != null) && (dmg.getBaseValue() == 0.0D) && entity.hasCustomName() && entity.getEntityData().getBoolean(NBT_KEY_B_PACIFIED);
+            return (dmg != null) && (dmg.getBaseValue() == 0.0D) && entity.getEntityData().getBoolean(NBT_KEY_B_PACIFIED);
         }
         return false;
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
@@ -168,7 +181,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
@@ -177,7 +190,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
@@ -190,7 +203,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
@@ -204,7 +217,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @param player
      * @return
@@ -214,7 +227,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
@@ -223,7 +236,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
@@ -232,7 +245,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param entity
      * @return
      */
@@ -255,7 +268,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param mob
      */
     public void initializeMob(EntityLiving mob) {
@@ -274,10 +287,15 @@ public class WandsCore {
             if ((a <= PARMANENT_BABY_MAX_AGE) && (a > -1900000000))
                 ((EntityAgeable)mob).setGrowingAge(-2000000000);
         }
+        // Initialize Iron Golems
+        if (mob instanceof EntityIronGolem)
+            updateGolemAI((EntityIronGolem)mob, 3);
+        if (mob instanceof EntitySnowman)
+            updateGolemAI((EntitySnowman)mob, 1);
     }
 
     /**
-     * 
+     *
      * @param animal
      * @param player
      */
@@ -287,7 +305,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param creature
      * @return
      */
@@ -305,7 +323,7 @@ public class WandsCore {
      * @return
      */
     private int doEnfebleOrPacify(EntityLiving mob, boolean pacify) {
-        if (!mob.isNoDespawnRequired() || !(mob instanceof IMob) || !mob.hasCustomName())
+        if (!(mob instanceof IMob))
             return -1;
         IAttributeInstance atr = mob.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
         if (atr == null)
@@ -317,6 +335,7 @@ public class WandsCore {
         } else if (v == 0.0D) {
             return 0;
         }
+        mob.enablePersistence();
         if (v != 0.0D)
             atr.setBaseValue(0.0D);
         atr = mob.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE);
@@ -331,7 +350,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param mob
      * @param player
      * @param forceUnfollow
@@ -385,7 +404,7 @@ public class WandsCore {
     }
 
     /**
-     * 
+     *
      * @param creature
      * @param doPacify
      * @param doFollow
@@ -484,7 +503,95 @@ public class WandsCore {
 
     /**
      *
+     * @param golem
+     * @param expPrio
+     */
+    private void updateGolemAI(EntityGolem golem, int expPrio) {
+        // Modify EntityAINearestAttackableTarget attack AI to *ignore* enfeebled and pacified mobs.
+        EntityAITasks tasks = golem.targetTasks;
+        EntityAINearestAttackableTarget t = null;
+        for (EntityAITasks.EntityAITaskEntry aie : tasks.taskEntries) {
+            if ((aie.priority == expPrio) && (aie.action instanceof EntityAINearestAttackableTarget) && !failed_targetEntitySelector) {
+                t = (EntityAINearestAttackableTarget)aie.action;
+                break;
+            }
+        }
+        boolean targetAImod = false;
+        if (t != null) {
+            final Field f = getEntitySelectorField();
+            if (f != null) {
+                try {
+                    Predicate p = (Predicate)f.get(t);
+                    if (p != null) {
+                        if (!(p instanceof WrappedTargetPredicate))
+                            f.set(t, new WrappedTargetPredicate(p));
+                        targetAImod = true;
+                    }
+                } catch (Exception e) {
+                    if (++errc_targetEntitySelector > 4) {
+                        // Try 5 times before giving up completely and abandon all logic for further attempts
+                        // (maybe we have some modified EntityIronGolem from other mod)
+                        logGolemAIError("modify", e);
+                        failed_targetEntitySelector = true;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     *
+     * @return
+     */
+    private Field getEntitySelectorField() {
+        Field f = this.f_targetEntitySelector;
+        if (f == null) {
+            try {
+                f = ReflectionHelper.findField(EntityAINearestAttackableTarget.class, "field_82643_g", "targetEntitySelector");
+                f.setAccessible(true);
+                failed_targetEntitySelector = false;
+                this.f_targetEntitySelector = f;
+            } catch (Exception e) {
+                // Log and try only once. Do not spam log.-
+                failed_targetEntitySelector = true;
+                logGolemAIError("access", e);
+                return null;
+            }
+        }
+        return f;
+    }
+
+    /**
+     *
+     * @param s
+     * @param e
+     */
+    private void logGolemAIError(String s, Throwable e) {
+        MicWandsMod.LOG.error("Unable to " + s + " field targetEntitySelector in EntityAINearestAttackableTarget AI task class. Minecraft/Forge compatibility issue?", e);
+        MicWandsMod.LOG.error("As a result, Iron Golems might act confused around enfeebled and pacified mobs (but not attack them).");
+    }
+
+    /**
+     *
      */
     private WandsCore() {
+    }
+
+    /**
+     *
+     * @author Micmu
+     */
+    @SuppressWarnings("unchecked")
+    private static final class WrappedTargetPredicate implements Predicate<EntityLivingBase> {
+        private final Predicate orig;
+
+        private WrappedTargetPredicate(Predicate o) {
+            orig = o;
+        }
+
+        @Override
+        public boolean apply(EntityLivingBase p) {
+            return orig.apply(p) && !WandsCore.getInstance().isEnfeebled(p);
+        }
     }
 }

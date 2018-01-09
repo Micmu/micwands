@@ -34,23 +34,21 @@ public class ItemWandEnfeeble extends ItemWand {
         final WandsCore wc = WandsCore.getInstance();
         if (pacify ? wc.canPacify(entity) : wc.canEnfeeble(entity)) {
             int r = pacify ? wc.wandPacify(entity) : wc.wandEnfeeble(entity);
-            if (r < 0) {
-                player.sendStatusMessage(new TextComponentTranslation("msg.micwands.err.worksonly", new TextComponentTranslation("msg.micwands.err.named")), true);
+            if (r >= 0) {
+                player.sendStatusMessage(new TextComponentTranslation("msg.micwands." + (pacify ? "pacify." : "enfeeble.") + r, entity.getName()), true);
+                if (r > 0) {
+                    if (!player.isCreative() && (player.getEntityWorld().getDifficulty() != EnumDifficulty.PEACEFUL)) {
+                        if (player.isPotionActive(MobEffects.SLOWNESS))
+                            player.removePotionEffect(MobEffects.SLOWNESS);
+                        player.addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, 400 + player.getRNG().nextInt(400), 4));
+                        if (player.isPotionActive(MobEffects.WEAKNESS))
+                            player.removePotionEffect(MobEffects.WEAKNESS);
+                        player.addPotionEffect(new PotionEffect(MobEffects.WEAKNESS, 600 + player.getRNG().nextInt(600), 1));
+                    }
+                    return 10 + player.getRNG().nextInt(10);
+                }
                 return 0;
             }
-            player.sendStatusMessage(new TextComponentTranslation("msg.micwands." + (pacify ? "pacify." : "enfeeble.") + r, entity.getName()), true);
-            if (r > 0) {
-                if (!player.isCreative() && (player.getEntityWorld().getDifficulty() != EnumDifficulty.PEACEFUL)) {
-                    if (player.isPotionActive(MobEffects.SLOWNESS))
-                        player.removePotionEffect(MobEffects.SLOWNESS);
-                    player.addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, 400 + player.getRNG().nextInt(400), 2));
-                    if (player.isPotionActive(MobEffects.WEAKNESS))
-                        player.removePotionEffect(MobEffects.WEAKNESS);
-                    player.addPotionEffect(new PotionEffect(MobEffects.WEAKNESS, 400 + player.getRNG().nextInt(400), 1));
-                }
-                return 10 + player.getRNG().nextInt(10);
-            }
-            return 0;
         }
         player.sendStatusMessage(new TextComponentTranslation("msg.micwands.err.worksonly", new TextComponentTranslation("msg.micwands.err.mob")), true);
         return 0;

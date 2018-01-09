@@ -25,4 +25,3 @@ msg.micwands.err.baby=neutral baby creatures
 msg.micwands.err.living=living creatures
 msg.micwands.err.neutral=neutral or pacified creatures
 msg.micwands.err.mob=hostile living creatures
-msg.micwands.err.named=name-tagged creatures

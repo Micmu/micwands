@@ -38,7 +38,7 @@ final class AIMobFollowPlayer extends EntityAIBase {
     private int recalcTick;
 
     /**
-     * 
+     *
      * @param creature
      */
     AIMobFollowPlayer(EntityLiving creature) {
@@ -75,7 +75,7 @@ final class AIMobFollowPlayer extends EntityAIBase {
     }
 
     /**
-     * 
+     *
      */
     @Override
     public boolean shouldExecute() {
@@ -84,7 +84,7 @@ final class AIMobFollowPlayer extends EntityAIBase {
             return false;
         } else {
             EntityPlayer own = getOwnerPlayer();
-            if ((own != null) && !own.isDead && !own.isSpectator() && isCreatureReady() && (creature.getDistanceSqToEntity(own) > distFarSq)) {
+            if ((own != null) && !own.isDead && !own.isSpectator() && isCreatureReady() && (creature.getDistanceSq(own) > distFarSq)) {
                 owner = own;
                 return true;
             }
@@ -94,16 +94,16 @@ final class AIMobFollowPlayer extends EntityAIBase {
     }
 
     /**
-     * 
+     *
      */
     @Override
     public boolean shouldContinueExecuting() {
         EntityPlayer own = this.owner;
-        return !creature.getNavigator().noPath() && (own != null) && (creature.getDistanceSqToEntity(own) > distCloseSq) && isCreatureReady() && !own.isDead && !own.isSpectator();
+        return !creature.getNavigator().noPath() && (own != null) && (creature.getDistanceSq(own) > distCloseSq) && isCreatureReady() && !own.isDead && !own.isSpectator();
     }
 
     /**
-     * 
+     *
      */
     @Override
     public void startExecuting() {
@@ -114,19 +114,19 @@ final class AIMobFollowPlayer extends EntityAIBase {
     }
 
     /**
-     * 
+     *
      */
     @Override
     public void resetTask() {
         owner = null;
-        creature.getNavigator().clearPathEntity();
+        creature.getNavigator().clearPath();
         if (moveType != 2)
             creature.setPathPriority(PathNodeType.WATER, oldWaterPrio);
         tick = 0;
     }
 
     /**
-     * 
+     *
      */
     @Override
     public void updateTask() {
@@ -134,7 +134,7 @@ final class AIMobFollowPlayer extends EntityAIBase {
             creature.getLookHelper().setLookPositionWithEntity(owner, 10.0F, (float)creature.getVerticalFaceSpeed());
             if (--recalcTick <= 0) {
                 recalcTick = 10;
-                if (!creature.getNavigator().tryMoveToEntityLiving(owner, followSpeed) && !creature.isRiding() && (creature.getDistanceSqToEntity(owner) > 200.0D)) {
+                if (!creature.getNavigator().tryMoveToEntityLiving(owner, followSpeed) && !creature.isRiding() && (creature.getDistanceSq(owner) > 200.0D)) {
                     int x = MathHelper.floor(owner.posX) - 2;
                     int y = MathHelper.floor(owner.getEntityBoundingBox().minY);
                     int z = MathHelper.floor(owner.posZ) - 2;
@@ -143,7 +143,7 @@ final class AIMobFollowPlayer extends EntityAIBase {
                         for (dz = 0; dz <= 4; ++dz) {
                             if (((dx < 1) || (dz < 1) || (dx > 3) || (dz > 3)) && canTeleportTo(x, y, z, dx, dz)) {
                                 creature.setLocationAndAngles((double)((float)(x + dx) + 0.5F), (double)y, (double)((float)(z + dz) + 0.5F), creature.rotationYaw, creature.rotationPitch);
-                                creature.getNavigator().clearPathEntity();
+                                creature.getNavigator().clearPath();
                                 return;
                             }
                         }
@@ -154,7 +154,7 @@ final class AIMobFollowPlayer extends EntityAIBase {
     }
 
     /**
-     * 
+     *
      * @return
      */
     private boolean isCreatureReady() {
@@ -166,7 +166,7 @@ final class AIMobFollowPlayer extends EntityAIBase {
     }
 
     /**
-     * 
+     *
      * @return
      */
     private EntityPlayer getOwnerPlayer() {
@@ -186,7 +186,7 @@ final class AIMobFollowPlayer extends EntityAIBase {
     }
 
     /**
-     * 
+     *
      * @param x
      * @param y
      * @param z
