@@ -13,6 +13,7 @@ import net.minecraft.util.text.ChatType;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.event.LootTableLoadEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.AnimalTameEvent;
 import net.minecraftforge.event.entity.living.LivingSetAttackTargetEvent;
@@ -88,6 +89,15 @@ final class EventHandlers {
                     golem.setRevengeTarget(null);
             }
         }
+    }
+
+    /**
+     *
+     * @param event
+     */
+    @SubscribeEvent
+    public static void onLootTableLoad(LootTableLoadEvent event) {
+        LootTableHandler.getInstance().initTable(event.getName(), event.getTable());
     }
 
     /**

@@ -1,0 +1,18 @@
+{
+ "pools": [
+    {
+       "name": "main",
+       "rolls": 1,
+       "entries": [
+          { "type": "item", "name": "micwands:wandsilence", "weight": 1 },
+          { "type": "item", "name": "micwands:wandage", "weight": 1 },
+          { "type": "item", "name": "micwands:wandfollow", "weight": 3 },
+          { "type": "item", "name": "micwands:wandenfeeble", "weight": 1 },
+          { "type": "item", "name": "micwands:wandpacify", "weight": 1 },
+          { "type": "item", "name": "micwands:wandfire", "weight": 1 },
+          { "type": "item", "name": "minecraft:experience_bottle", "weight": 3 },
+          { "type": "empty", "weight": 89 }
+        ]
+    }
+ ]
+}
