@@ -39,8 +39,6 @@ public class LootTableHandler {
     public void initTable(ResourceLocation res, LootTable table) {
         ResourceLocation inject = getInjectionTable(res);
         if (inject != null) {
-            if (MicWandsMod.LOG.isTraceEnabled())
-                MicWandsMod.LOG.trace("Expanding loot table: " + res + " --> " + inject.getResourcePath());
             table.addPool(new LootPool(new LootEntry[] { new LootEntryTable(inject, 1, 0, NO_LOOT_COND, "micwands_inject_entry") }, NO_LOOT_COND, new RandomValueRange(1), new RandomValueRange(0, 1), "micwands_inject_pool"));
         }
     }
