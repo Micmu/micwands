@@ -36,9 +36,13 @@ import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.passive.IAnimals;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.MobEffects;
+import net.minecraft.inventory.InventoryHelper;
+import net.minecraft.item.ItemStack;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
 import net.micmu.mcmods.micwands.MicWandsMod;
@@ -136,7 +140,7 @@ public class WandsCore {
     public boolean isEnfeebled(EntityLivingBase entity) {
         if ((entity instanceof EntityLiving) && ((EntityLiving)entity).isNoDespawnRequired() && (entity instanceof IMob)) {
             final IAttributeInstance dmg = entity.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
-            return (dmg != null) && (dmg.getBaseValue() == 0.0D);
+            return ((dmg == null) || (dmg.getBaseValue() == 0.0D)) && (entity.getEntityData().getByte(NBT_KEY_B_PACIFIED) != (byte)0);
         }
         return false;
     }
@@ -166,7 +170,7 @@ public class WandsCore {
     public boolean isPacified(EntityLivingBase entity) {
         if ((entity instanceof EntityLiving) && ((EntityLiving)entity).isNoDespawnRequired() && (entity instanceof IMob)) {
             final IAttributeInstance dmg = entity.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
-            return (dmg != null) && (dmg.getBaseValue() == 0.0D) && entity.getEntityData().getBoolean(NBT_KEY_B_PACIFIED);
+            return ((dmg == null) || (dmg.getBaseValue() == 0.0D)) && (entity.getEntityData().getByte(NBT_KEY_B_PACIFIED) == (byte)1);
         }
         return false;
     }
@@ -326,25 +330,38 @@ public class WandsCore {
         if (!(mob instanceof IMob))
             return -1;
         IAttributeInstance atr = mob.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
-        if (atr == null)
-            return -1;
-        double v = atr.getBaseValue();
+        double v = 0.0D;
+        if (atr != null)
+            v = atr.getBaseValue();
         if (pacify) {
-            if ((v == 0.0D) && mob.getEntityData().getBoolean(NBT_KEY_B_PACIFIED))
+            if ((v == 0.0D) && (mob.getEntityData().getByte(NBT_KEY_B_PACIFIED) == (byte)1))
                 return 0;
         } else if (v == 0.0D) {
-            return 0;
+            if (mob.getEntityData().getByte(NBT_KEY_B_PACIFIED) != (byte)0)
+                return 0;
         }
         mob.enablePersistence();
-        if (v != 0.0D)
+        if ((atr != null) && (v != 0.0D))
             atr.setBaseValue(0.0D);
         atr = mob.getEntityAttribute(SharedMonsterAttributes.FOLLOW_RANGE);
-        v = atr.getBaseValue();
-        if (v > 16.0D)
-            atr.setBaseValue(16.0D);
+        if (atr != null) {
+            v = atr.getBaseValue();
+            if (v > 16.0D)
+                atr.setBaseValue(16.0D);
+        }
         if (pacify) {
-            mob.getEntityData().setBoolean(NBT_KEY_B_PACIFIED, true);
+            mob.getEntityData().setByte(NBT_KEY_B_PACIFIED, (byte)1);
             updateMobAI(mob, true, -1, -1);
+        } else if (mob.getEntityData().getByte(NBT_KEY_B_PACIFIED) == (byte)0) {
+            mob.getEntityData().setByte(NBT_KEY_B_PACIFIED, (byte)2);
+            // Make it drop hand item (weapon) on enfeeblement
+            mob.setCanPickUpLoot(false);
+            ItemStack stack = mob.getHeldItem(EnumHand.MAIN_HAND);
+            if ((stack != null) && !stack.isEmpty()) {
+                mob.setHeldItem(EnumHand.MAIN_HAND, ItemStack.EMPTY);
+                BlockPos p = mob.getPosition();
+                InventoryHelper.spawnItemStack(mob.world, (double)p.getX(), (double)p.getY(), (double)p.getZ(), stack);
+            }
         }
         return 1;
     }
