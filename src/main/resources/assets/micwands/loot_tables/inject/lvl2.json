@@ -11,7 +11,7 @@
           { "type": "item", "name": "micwands:wandpacify", "weight": 3 },
           { "type": "item", "name": "micwands:wandfire", "weight": 3 },
           { "type": "item", "name": "minecraft:experience_bottle", "weight": 4 },
-          { "type": "empty", "weight": 83 }
+          { "type": "empty", "weight": 70 }
         ]
     }
  ]

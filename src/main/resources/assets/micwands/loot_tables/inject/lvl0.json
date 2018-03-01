@@ -7,8 +7,8 @@
           { "type": "item", "name": "micwands:wandsilence", "weight": 2 },
           { "type": "item", "name": "micwands:wandage", "weight": 2 },
           { "type": "item", "name": "micwands:wandfollow", "weight": 1 },
-          { "type": "item", "name": "minecraft:experience_bottle", "weight": 5 },
-          { "type": "empty", "weight": 190 }
+          { "type": "item", "name": "minecraft:experience_bottle", "weight": 4 },
+          { "type": "empty", "weight": 150 }
         ]
     }
  ]
