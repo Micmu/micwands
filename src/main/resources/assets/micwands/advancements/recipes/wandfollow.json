@@ -1,0 +1,20 @@
+{
+  "rewards": { "recipes": [ "micwands:wandfollow", "micwands:wandfollow_repair" ] },
+  "criteria": {
+    "a": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [ { "item": "micwands:wandfollow" } ]
+      }
+    },
+    "b": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": { "recipe": "micwands:wandfollow" }
+    },
+    "c": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": { "recipe": "micwands:wandfollow_repair" }
+    }
+  },
+  "requirements": [ [ "a", "b", "c" ] ]
+}

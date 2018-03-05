@@ -1,0 +1,20 @@
+{
+  "rewards": { "recipes": [ "micwands:wandsilence", "micwands:wandsilence_repair" ] },
+  "criteria": {
+    "a": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [ { "item": "micwands:wandsilence" } ]
+      }
+    },
+    "b": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": { "recipe": "micwands:wandsilence" }
+    },
+    "c": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": { "recipe": "micwands:wandsilence_repair" }
+    }
+  },
+  "requirements": [ [ "a", "b", "c" ] ]
+}

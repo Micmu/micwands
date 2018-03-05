@@ -1,0 +1,20 @@
+{
+  "rewards": { "recipes": [ "micwands:wandpacify", "micwands:wandpacify_repair" ] },
+  "criteria": {
+    "a": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [ { "item": "micwands:wandpacify" } ]
+      }
+    },
+    "b": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": { "recipe": "micwands:wandpacify" }
+    },
+    "c": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": { "recipe": "micwands:wandpacify_repair" }
+    }
+  },
+  "requirements": [ [ "a", "b", "c" ] ]
+}

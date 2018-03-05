@@ -72,6 +72,13 @@ public class LootTableHandler {
             } else if (matchName(res, "chests", "stronghold_library")) {
                 return INJECT_LVL_2;
             }
+        } else if ("micvillage".equals(res.getResourceDomain())) {
+            // SmartVillages integration
+            if (matchName(res, "chests", "church")) {
+                return INJECT_LVL_0;
+            } else if (matchName(res, "chests", "library")) {
+                return INJECT_LVL_0;
+            }
         }
         return null;
     }

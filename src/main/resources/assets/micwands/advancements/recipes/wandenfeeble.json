@@ -1,0 +1,20 @@
+{
+  "rewards": { "recipes": [ "micwands:wandenfeeble", "micwands:wandenfeeble_repair" ] },
+  "criteria": {
+    "a": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [ { "item": "micwands:wandenfeeble" } ]
+      }
+    },
+    "b": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": { "recipe": "micwands:wandenfeeble" }
+    },
+    "c": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": { "recipe": "micwands:wandenfeeble_repair" }
+    }
+  },
+  "requirements": [ [ "a", "b", "c" ] ]
+}

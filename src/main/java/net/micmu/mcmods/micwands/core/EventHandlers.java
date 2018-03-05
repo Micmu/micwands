@@ -95,7 +95,7 @@ final class EventHandlers {
      *
      * @param event
      */
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOW)
     public static void onLootTableLoad(LootTableLoadEvent event) {
         LootTableHandler.getInstance().initTable(event.getName(), event.getTable());
     }
