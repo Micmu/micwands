@@ -565,7 +565,6 @@ public class WandsCore {
         if (f == null) {
             try {
                 f = ReflectionHelper.findField(EntityAINearestAttackableTarget.class, "field_82643_g", "targetEntitySelector");
-                f.setAccessible(true);
                 failed_targetEntitySelector = false;
                 this.f_targetEntitySelector = f;
             } catch (Exception e) {
