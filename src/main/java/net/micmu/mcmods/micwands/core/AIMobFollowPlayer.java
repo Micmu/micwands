@@ -2,6 +2,7 @@ package net.micmu.mcmods.micwands.core;
 
 import java.util.UUID;
 
+import net.minecraft.block.BlockGrassPath;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.BlockFaceShape;
 import net.minecraft.block.state.IBlockState;
@@ -213,16 +214,35 @@ final class AIMobFollowPlayer extends EntityAIBase {
             if (world.getBlockState(p).getMaterial() != Material.WATER)
                 return false;
             return true;
-        } else if (bs.getBlockFaceShape(world, p, EnumFacing.DOWN) != BlockFaceShape.SOLID) {
+        } else if ((bs.getBlockFaceShape(world, p, EnumFacing.DOWN) != BlockFaceShape.SOLID) && !(bs.getBlock() instanceof BlockGrassPath)) {
             // Walking
             return false;
         }
         p.setY(y);
-        if (!world.isAirBlock(p))
+        if (isImpassable(world, p, true))
             return false;
         p.setY(y + 1);
-        if (!world.isAirBlock(p))
+        if (isImpassable(world, p, false))
             return false;
+        return true;
+    }
+
+    /**
+     *
+     * @param world
+     * @param p
+     * @param bottom
+     * @return
+     */
+    private boolean isImpassable(World world, BlockPos p, boolean bottom) {
+        final IBlockState bs = world.getBlockState(p);
+        if (bs.getBlock().isAir(bs, world, p))
+            return false;
+        if (bottom) {
+            final Material m = bs.getMaterial();
+            if (((m == Material.SNOW) || (m == Material.PLANTS) || (m == Material.CARPET)) && bs.getBlock().isPassable(world, p))
+                return false;
+        }
         return true;
     }
 }
