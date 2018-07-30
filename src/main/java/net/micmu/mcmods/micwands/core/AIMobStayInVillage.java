@@ -33,12 +33,12 @@ final class AIMobStayInVillage extends EntityAIBase {
         if (tick > 0) {
             tick--;
         } else {
-            tick = 100 + creature.getRNG().nextInt(200);
+            tick = 123 + creature.getRNG().nextInt(234);
             Village village = creature.world.getVillageCollection().getNearestVillage(creature.getPosition(), 128);
             if (village == null) {
                 creature.detachHome();
             } else {
-                creature.setHomePosAndDistance(village.getCenter(), village.getVillageRadius());
+                creature.setHomePosAndDistance(village.getCenter(), village.getVillageRadius() + 4);
             }
         }
         if (creature.hasHome() && !creature.isWithinHomeDistanceCurrentPosition()) {

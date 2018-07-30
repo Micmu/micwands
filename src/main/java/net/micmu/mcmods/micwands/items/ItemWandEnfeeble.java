@@ -45,7 +45,7 @@ public class ItemWandEnfeeble extends ItemWand {
                             player.removePotionEffect(MobEffects.WEAKNESS);
                         player.addPotionEffect(new PotionEffect(MobEffects.WEAKNESS, 600 + player.getRNG().nextInt(600), 1));
                     }
-                    return 10 + player.getRNG().nextInt(10);
+                    return 8 + player.getRNG().nextInt(8);
                 }
                 return 0;
             }

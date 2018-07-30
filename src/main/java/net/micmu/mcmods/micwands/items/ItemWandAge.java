@@ -29,7 +29,7 @@ public class ItemWandAge extends ItemWand {
         if (wc.canAge(entity)) {
             int r = wc.wandAge(entity);
             player.sendStatusMessage(new TextComponentTranslation("msg.micwands.age." + r, entity.getName()), true);
-            return (r > 0) ? (6 + player.getRNG().nextInt(6)) : -(3 + player.getRNG().nextInt(3));
+            return (r > 0) ? (5 + player.getRNG().nextInt(5)) : -(2 + player.getRNG().nextInt(2));
         }
         player.sendStatusMessage(new TextComponentTranslation("msg.micwands.err.worksonly", new TextComponentTranslation("msg.micwands.err.baby")), true);
         return 0;

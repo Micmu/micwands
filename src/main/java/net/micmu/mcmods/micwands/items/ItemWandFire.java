@@ -31,7 +31,7 @@ public class ItemWandFire extends ItemWand {
         if (wc.canFire(entity)) {
             int r = wc.wandFire(entity);
             player.sendStatusMessage(new TextComponentTranslation("msg.micwands.fire." + r, entity.getName()), true);
-            return (r > 0) ? (8 + player.getRNG().nextInt(8)) : -(4 + player.getRNG().nextInt(4));
+            return (r > 0) ? (6 + player.getRNG().nextInt(6)) : -(3 + player.getRNG().nextInt(3));
         }
         if (entity.isImmuneToFire()) {
             player.sendStatusMessage(new TextComponentTranslation("msg.micwands.err.fireimmune"), true);
@@ -42,7 +42,7 @@ public class ItemWandFire extends ItemWand {
     }
 
     /**
-     * 
+     *
      */
     @Override
     protected SoundEvent getSoundSuccess(boolean toggleOn) {
@@ -50,7 +50,7 @@ public class ItemWandFire extends ItemWand {
     }
 
     /**
-     * 
+     *
      */
     @Override
     protected float getSoundSuccessPitch(boolean toggleOn) {

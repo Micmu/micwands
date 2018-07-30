@@ -42,7 +42,7 @@ public class ItemWandFollow extends ItemWand {
                     }
                 }
                 player.sendStatusMessage(new TextComponentTranslation("msg.micwands.follow." + r, entity.getName()), true);
-                int d = (cost != 0) ? cost : (6 + player.getRNG().nextInt(6));
+                int d = (cost != 0) ? cost : (4 + player.getRNG().nextInt(4));
                 return (r == 0) ? -d : d;
             } else if (r == -2) {
                 player.sendStatusMessage(new TextComponentTranslation("msg.micwands.err.notowner"), true);
@@ -57,7 +57,7 @@ public class ItemWandFollow extends ItemWand {
     }
 
     /**
-     * 
+     *
      */
     @Override
     protected SoundEvent getSoundSuccess(boolean toggleOn) {
@@ -65,7 +65,7 @@ public class ItemWandFollow extends ItemWand {
     }
 
     /**
-     * 
+     *
      */
     @Override
     protected float getSoundSuccessPitch(boolean toggleOn) {
@@ -73,7 +73,7 @@ public class ItemWandFollow extends ItemWand {
     }
 
     /**
-     * 
+     *
      */
     @Override
     protected int getAnimationDuration(boolean toggleOff) {
