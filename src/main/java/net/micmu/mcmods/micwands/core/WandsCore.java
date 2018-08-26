@@ -213,8 +213,8 @@ public class WandsCore {
      */
     public boolean canFollowing(EntityLivingBase entity) {
         if ((entity instanceof EntityLiving) && !entity.isDead) {
-            if (entity instanceof EntityGolem)
-                return false;
+            if (entity instanceof EntityIronGolem)
+                return ((EntityIronGolem)entity).isPlayerCreated();
             return (entity instanceof EntityVillager) || ((entity instanceof IAnimals) && !(entity instanceof IMob)) || isPacified(entity);
         }
         return false;
@@ -276,6 +276,8 @@ public class WandsCore {
      * @param mob
      */
     public void initializeMob(EntityLiving mob) {
+        if (mob.isDead)
+            return;
         // Update mob AI if needed.
         boolean p = isPacified(mob);
         boolean f = isFollowing(mob);
@@ -568,7 +570,7 @@ public class WandsCore {
                 failed_targetEntitySelector = false;
                 this.f_targetEntitySelector = f;
             } catch (Exception e) {
-                // Log and try only once. Do not spam log.-
+                // Log and try only once. Do not spam log.
                 failed_targetEntitySelector = true;
                 logGolemAIError("access", e);
                 return null;
