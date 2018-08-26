@@ -194,7 +194,7 @@ final class AIMobFollowPlayer extends EntityAIBase {
                 // Attempt to walk towards the player
                 if (((d < DIST_RIDE_MOVE) || !c.isRiding()) && !c.getNavigator().tryMoveToEntityLiving(o, followSpeed)) {
                     // Failed.
-                    if ((d > DIST_TELEPORT) && !c.isRiding() && ((moveType != 1) || !c.isAirBorne))
+                    if ((d > DIST_TELEPORT) && !c.isRiding())
                         attemptShortTeleport(); // Attempt short range teleport
                 }
             }
@@ -273,7 +273,6 @@ final class AIMobFollowPlayer extends EntityAIBase {
                 // Move down from grass.
                 m.setY(m.getY() - 1);
                 bs = world.getBlockState(m);
-                //MicWandsMod.LOG.trace(creature.getName() + " stepped down.");
             }
             if (!avoidBlock(world, bs, m) || ((bs.getMaterial() == Material.WATER) && !WandsCore.getInstance().isAvoidWarpBlock(bs))) {
                 int y = m.getY() + 1;
@@ -292,11 +291,9 @@ final class AIMobFollowPlayer extends EntityAIBase {
                         if (canTeleportTo(m.setPos(p.getX() - 1, y, p.getZ()), true) && canTeleportTo(m.setPos(p.getX() - 1, y, p.getZ() + 1), true))
                             return teleportTo(p.getX() - 1, y, p.getZ(), 0.95F, true);
                     }
-                    //MicWandsMod.LOG.trace(creature.getName() + " fails to make a warp!");
                 } else {
                     return teleportTo(m.getX(), y, m.getZ(), 0.45F, true);
                 }
-                //MicWandsMod.LOG.trace(creature.getName() + " fails to make a WARP UTTERLY. Teh block is: " + bs.getBlock().getRegistryName() + " avoid: " + avoidBlock(world, bs, m));
             }
         }
         return false;
@@ -315,7 +312,6 @@ final class AIMobFollowPlayer extends EntityAIBase {
         final Random rnd = creature.getRNG();
         creature.setLocationAndAngles((double)((float)x + add + (0.1F * rnd.nextFloat())), (double)y, (double)((float)z + add + (0.1F * rnd.nextFloat())), creature.rotationYaw, creature.rotationPitch);
         creature.getNavigator().clearPath();
-        //MicWandsMod.LOG.trace(creature.getName() + " makes a " + (longDistance ? "long" : "short") + " warp.");
         this.lastWarp = creature.world.getTotalWorldTime() + (longDistance ? 51L : 26L);
         return true;
     }
