@@ -35,7 +35,8 @@ final class AIMobFollowPlayer extends EntityAIBase {
     private static final double DIST_TELEPORT = 200.0D; // 14+ blocks
     private static final double DIST_RIDE_MOVE = 256.0D; // 16 blocks
     private static final double DIST_LOOK = 576.0D; // 24 blocks
-    private static final double DIST_CRITICAL = 9216.0D; // 96 blocks
+    private static final double DIST_CRITICAL = 14400.0D; // 120 blocks
+    private static final double VERT_LIMIT = 50.0D; // 50 blocks
 
     private final EntityLiving creature;
     private final int moveType; // 0-walk, 1-fly, 2-swim
@@ -46,6 +47,7 @@ final class AIMobFollowPlayer extends EntityAIBase {
     private String idCache_str;
     private UUID idCache_uid;
     private EntityPlayer owner;
+    private long lastWarp;
     private float oldWaterPrio;
     private int shortTick;
     private int longTick;
@@ -93,6 +95,15 @@ final class AIMobFollowPlayer extends EntityAIBase {
                 this.distCloseSq = 9.0D;
             }
         }
+        this.lastWarp = (creature.world != null) ? (creature.world.getTotalWorldTime() + 51L) : 0L;
+    }
+
+    /**
+     *
+     * @return
+     */
+    protected long getLastWarp() {
+        return lastWarp;
     }
 
     /**
@@ -152,29 +163,39 @@ final class AIMobFollowPlayer extends EntityAIBase {
      */
     @Override
     public void updateTask() {
-        if (isCreatureReady() && (owner != null)) {
-            double d = creature.getDistanceSq(owner);
-            if (d > DIST_CRITICAL) {
-                // Attempt a long range teleport!
-                if (--longTick <= 0) {
-                    longTick = 9 + creature.getRNG().nextInt(3);
-                    if (!creature.isRiding())
-                        if (!attemptTeleport())
-                            attemptEmergencyTeleport();
-                }
-            } else {
-                // Look at player
-                if (d < DIST_LOOK)
-                    creature.getLookHelper().setLookPositionWithEntity(owner, 10.0F, (float)creature.getVerticalFaceSpeed());
-                if (--shortTick <= 0) {
-                    shortTick = 9 + creature.getRNG().nextInt(3);
-                    longTick = 0;
-                    // Attempt to walk towards the player
-                    if (((d < DIST_RIDE_MOVE) || !creature.isRiding()) && !creature.getNavigator().tryMoveToEntityLiving(owner, followSpeed)) {
-                        // Failed.
-                        if ((d > DIST_TELEPORT) && !creature.isRiding())
-                            attemptTeleport(); // Attempt short range teleport
-                    }
+        if (!isCreatureReady())
+            return;
+        EntityPlayer o = this.owner;
+        if (o == null)
+            return;
+        EntityLiving c = this.creature;
+        double a = c.posX - o.posX;
+        double d = (a * a);
+        a = c.posZ - o.posZ;
+        d += (a * a);
+        a = Math.abs(c.posY - o.posY);
+        if (a > VERT_LIMIT)
+            a = VERT_LIMIT;
+        d += (a * a);
+        if (d > DIST_CRITICAL) {
+            // Attempt a long range teleport!
+            if (--longTick <= 0) {
+                longTick = 8 + c.getRNG().nextInt(3);
+                if (!c.isRiding() && !attemptShortTeleport())
+                    attemptLongTeleport();
+            }
+        } else {
+            // Look at player
+            if (d < DIST_LOOK)
+                c.getLookHelper().setLookPositionWithEntity(o, 10.0F, (float)c.getVerticalFaceSpeed());
+            if (--shortTick <= 0) {
+                shortTick = 9 + c.getRNG().nextInt(3);
+                longTick = 0;
+                // Attempt to walk towards the player
+                if (((d < DIST_RIDE_MOVE) || !c.isRiding()) && !c.getNavigator().tryMoveToEntityLiving(o, followSpeed)) {
+                    // Failed.
+                    if ((d > DIST_TELEPORT) && !c.isRiding() && ((moveType != 1) || !c.isAirBorne))
+                        attemptShortTeleport(); // Attempt short range teleport
                 }
             }
         }
@@ -184,7 +205,7 @@ final class AIMobFollowPlayer extends EntityAIBase {
      *
      * @return
      */
-    private boolean attemptTeleport() {
+    private boolean attemptShortTeleport() {
         final BlockPos.MutableBlockPos m = new BlockPos.MutableBlockPos();
         boolean isWide = (creature.width > 1.0F);
         int dx = 0;
@@ -195,16 +216,16 @@ final class AIMobFollowPlayer extends EntityAIBase {
         if (isWide) {
             for (; dx <= 6; dx += 2)
                 for (dz = 0; dz <= 6; dz += 2)
-                    if (((dx == 0) || (dz == 0) || (dx == 6) || (dz == 6)) && canTeleportTo(m.setPos(x + dx, y, z + dz)))
-                        if (canTeleportTo(m.setPos(x + dx - 1, y, z + dz - 1)))
-                            if (canTeleportTo(m.setPos(x + dx - 1, y, z + dz + 1)))
-                                if (canTeleportTo(m.setPos(x + dx + 1, y, z + dz + 1)))
-                                    return teleportTo(x + dx, y, z + dz, 0.95F);
+                    if (((dx == 0) || (dz == 0) || (dx == 6) || (dz == 6)) && canTeleportTo(m.setPos(x + dx, y, z + dz), false))
+                        if (canTeleportTo(m.setPos(x + dx - 1, y, z + dz - 1), false))
+                            if (canTeleportTo(m.setPos(x + dx - 1, y, z + dz + 1), false))
+                                if (canTeleportTo(m.setPos(x + dx + 1, y, z + dz + 1), false))
+                                    return teleportTo(x + dx, y, z + dz, 0.95F, false);
         } else {
             for (; dx <= 4; ++dx)
                 for (dz = 0; dz <= 4; ++dz)
-                    if (((dx == 0) || (dz == 0) || (dx == 4) || (dz == 4)) && canTeleportTo(m.setPos(x + dx, y, z + dz)))
-                        return teleportTo(x + dx, y, z + dz, 0.45F);
+                    if (((dx == 0) || (dz == 0) || (dx == 4) || (dz == 4)) && canTeleportTo(m.setPos(x + dx, y, z + dz), false))
+                        return teleportTo(x + dx, y, z + dz, 0.45F, false);
         }
         return false;
     }
@@ -213,14 +234,70 @@ final class AIMobFollowPlayer extends EntityAIBase {
      *
      * @return
      */
-    private boolean attemptEmergencyTeleport() {
+    private boolean attemptLongTeleport() {
+        final BlockPos o = new BlockPos(MathHelper.floor(owner.posX), MathHelper.floor(owner.getEntityBoundingBox().minY), MathHelper.floor(owner.posZ));
+
+        // Flying creature. No need to place it on the ground.
+        if (moveType == 1)
+            return teleportTo(o.getX(), o.getY(), o.getZ(), 0.45F, true);
+
         final World world = creature.world;
-        BlockPos o = new BlockPos(MathHelper.floor(owner.posX), MathHelper.floor(owner.getEntityBoundingBox().minY), MathHelper.floor(owner.posZ));
+        final BlockPos.MutableBlockPos m = new BlockPos.MutableBlockPos();
         BlockPos p = world.getTopSolidOrLiquidBlock(o);
-        if (p.getY() < o.getY()) {
-            IBlockState bs = world.getBlockState(p);
-            if (!avoidBlock(world, bs, p) || (bs.getMaterial() == Material.WATER))
-                return teleportTo(p.getX(), p.getY() + 1, p.getZ(), 0.45F);
+        if (p.getY() > o.getY()) {
+            // Handle Nether or large cave situation with no sky
+            m.setPos(o);
+            while (m.getY() > 1) {
+                if (!world.isAirBlock(m))
+                    break;
+                m.setY(m.getY() - 1);
+            }
+            p = m.toImmutable();
+        }
+        if (p.getY() <= o.getY()) {
+            m.setPos(p);
+            IBlockState bs = world.getBlockState(m);
+            Material x = bs.getMaterial();
+            if (x.isLiquid()) {
+                // In liquid. Move up to player level or water surface if player flying above
+                while (m.getY() < o.getY()) {
+                    m.setY(m.getY() + 1);
+                    bs = world.getBlockState(m);
+                    if (!bs.getMaterial().isLiquid()) {
+                        m.setY(m.getY() - 1);
+                        bs = world.getBlockState(m);
+                        break;
+                    }
+                }
+            } else if ((p.getY() > 0) && ((x == Material.AIR) || (x == Material.SNOW) || (x == Material.PLANTS) || (x == Material.CARPET) || (x == Material.VINE)) && bs.getBlock().isPassable(world, m)) {
+                // Move down from grass.
+                m.setY(m.getY() - 1);
+                bs = world.getBlockState(m);
+                //MicWandsMod.LOG.trace(creature.getName() + " stepped down.");
+            }
+            if (!avoidBlock(world, bs, m) || ((bs.getMaterial() == Material.WATER) && !WandsCore.getInstance().isAvoidWarpBlock(bs))) {
+                int y = m.getY() + 1;
+                if (creature.width > 1.0F) {
+                    // Special handling of fat mofos
+                    p = m.toImmutable();
+                    if (canTeleportTo(m.setPos(p.getX(), y, p.getZ() - 1), true)) {
+                        if (canTeleportTo(m.setPos(p.getX() - 1, y, p.getZ()), true) && canTeleportTo(m.setPos(p.getX() - 1, y, p.getZ() - 1), true))
+                            return teleportTo(m.getX(), y, m.getZ(), 0.95F, true);
+                        if (canTeleportTo(m.setPos(p.getX() + 1, y, p.getZ()), true) && canTeleportTo(m.setPos(p.getX() + 1, y, p.getZ() - 1), true))
+                            return teleportTo(p.getX(), y, p.getZ() - 1, 0.95F, true);
+                    }
+                    if (canTeleportTo(m.setPos(p.getX(), y, p.getZ() + 1), true)) {
+                        if (canTeleportTo(m.setPos(p.getX() + 1, y, p.getZ()), true) && canTeleportTo(m.setPos(p.getX() + 1, y, p.getZ() + 1), true))
+                            return teleportTo(p.getX(), y, p.getZ(), 0.95F, true);
+                        if (canTeleportTo(m.setPos(p.getX() - 1, y, p.getZ()), true) && canTeleportTo(m.setPos(p.getX() - 1, y, p.getZ() + 1), true))
+                            return teleportTo(p.getX() - 1, y, p.getZ(), 0.95F, true);
+                    }
+                    //MicWandsMod.LOG.trace(creature.getName() + " fails to make a warp!");
+                } else {
+                    return teleportTo(m.getX(), y, m.getZ(), 0.45F, true);
+                }
+                //MicWandsMod.LOG.trace(creature.getName() + " fails to make a WARP UTTERLY. Teh block is: " + bs.getBlock().getRegistryName() + " avoid: " + avoidBlock(world, bs, m));
+            }
         }
         return false;
     }
@@ -231,12 +308,15 @@ final class AIMobFollowPlayer extends EntityAIBase {
      * @param y
      * @param z
      * @param add
+     * @param longDistance
      * @return
      */
-    private boolean teleportTo(int x, int y, int z, float add) {
+    private boolean teleportTo(int x, int y, int z, float add, boolean longDistance) {
         final Random rnd = creature.getRNG();
         creature.setLocationAndAngles((double)((float)x + add + (0.1F * rnd.nextFloat())), (double)y, (double)((float)z + add + (0.1F * rnd.nextFloat())), creature.rotationYaw, creature.rotationPitch);
         creature.getNavigator().clearPath();
+        //MicWandsMod.LOG.trace(creature.getName() + " makes a " + (longDistance ? "long" : "short") + " warp.");
+        this.lastWarp = creature.world.getTotalWorldTime() + (longDistance ? 51L : 26L);
         return true;
     }
 
@@ -275,15 +355,16 @@ final class AIMobFollowPlayer extends EntityAIBase {
     /**
      *
      * @param m
+     * @param force
      * @return
      */
-    private boolean canTeleportTo(BlockPos.MutableBlockPos m) {
+    private boolean canTeleportTo(BlockPos.MutableBlockPos m, boolean force) {
         final World world = creature.getEntityWorld();
         int y = m.getY();
         IBlockState bs;
         m.setY(y - 1);
         bs = world.getBlockState(m);
-        if (moveType == 1) {
+        if ((moveType == 1) && !force) {
             // Flying
             if (!(bs.isSideSolid(world, m, EnumFacing.UP) || (bs.getMaterial() == Material.LEAVES)))
                 return false;
@@ -298,20 +379,20 @@ final class AIMobFollowPlayer extends EntityAIBase {
             if (world.getBlockState(m).getMaterial() != Material.WATER)
                 return false;
             return true;
-        } else if (avoidBlock(world, bs, m)) {
+        } else if (avoidBlock(world, bs, m) && (!force || (bs.getMaterial() != Material.WATER))) {
             // Walking
             return false;
         }
         m.setY(y);
-        if (isNotPassable(world, m, true))
+        if (isNotPassable(world, m, true, force))
             return false;
         if (y < 255) {
             m.setY(y + 1);
-            if (isNotPassable(world, m, false))
+            if (isNotPassable(world, m, false, force))
                 return false;
             if ((creature.height > 2.0F) && (y < 254)) {
                 m.setY(y + 2);
-                if (isNotPassable(world, m, false))
+                if (isNotPassable(world, m, false, force))
                     return false;
             }
         }
@@ -329,6 +410,8 @@ final class AIMobFollowPlayer extends EntityAIBase {
             if ((m == Material.LAVA) || (m == Material.FIRE) || (bs.getBlock() instanceof BlockMagma))
                 return true;
         }
+        if (WandsCore.getInstance().isAvoidWarpBlock(bs))
+            return true;
         return ((bs.getBlockFaceShape(world, p, EnumFacing.DOWN) != BlockFaceShape.SOLID) && !bs.isSideSolid(world, p, EnumFacing.UP) && !solidSpecial(bs.getBlock()));
     }
 
@@ -346,15 +429,16 @@ final class AIMobFollowPlayer extends EntityAIBase {
      * @param world
      * @param p
      * @param bottom
+     * @param water
      * @return
      */
-    private boolean isNotPassable(World world, BlockPos p, boolean bottom) {
+    private boolean isNotPassable(World world, BlockPos p, boolean bottom, boolean water) {
         final IBlockState bs = world.getBlockState(p);
-        if (bs.getBlock().isAir(bs, world, p))
+        if ((water && ((bs.getMaterial() == Material.WATER) && !WandsCore.getInstance().isAvoidWarpBlock(bs))) || bs.getBlock().isAir(bs, world, p))
             return false;
         if (bottom) {
             final Material m = bs.getMaterial();
-            if (((m == Material.SNOW) || (m == Material.PLANTS) || (m == Material.CARPET) || (m == Material.VINE)) && bs.getBlock().isPassable(world, p))
+            if (((m == Material.SNOW) || (m == Material.PLANTS) || (m == Material.CARPET) || (m == Material.VINE)) && bs.getBlock().isPassable(world, p) && !WandsCore.getInstance().isAvoidWarpBlock(bs))
                 return false;
         }
         return true;

@@ -1,10 +1,15 @@
 package net.micmu.mcmods.micwands.core;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import com.google.common.base.Predicate;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityAgeable;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLiving;
@@ -35,6 +40,7 @@ import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.passive.IAnimals;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.init.MobEffects;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
@@ -42,8 +48,11 @@ import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.pathfinding.PathNavigateGround;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
+import net.minecraftforge.registries.IForgeRegistry;
 
 import net.micmu.mcmods.micwands.MicWandsMod;
 
@@ -64,6 +73,7 @@ public class WandsCore {
     private static final WandsCore INSTANCE = new WandsCore();
     private static final int PARMANENT_BABY_MAX_AGE = -500000000;
 
+    private Map<Block, Object> noWarpBlocks_cache = null;
     private Field f_targetEntitySelector = null;
     private boolean failed_targetEntitySelector = false;
     private int errc_targetEntitySelector = 0;
@@ -324,6 +334,36 @@ public class WandsCore {
 
     /**
      *
+     * @param creature
+     */
+    public boolean isNegateWarpDamage(EntityLiving creature) {
+        EntityAITasks tasks = creature.tasks;
+        if (tasks == null)
+            return false;
+        long p = 0L;
+        for (EntityAITasks.EntityAITaskEntry e : tasks.taskEntries) {
+            if (e.action.getClass() == AIMobFollowPlayer.class) {
+                p = ((AIMobFollowPlayer)e.action).getLastWarp();
+                break;
+            }
+        }
+        return (creature.world.getTotalWorldTime() < p);
+    }
+
+    /**
+     *
+     * @param bs
+     * @return
+     */
+    protected boolean isAvoidWarpBlock(IBlockState bs) {
+        Map<Block, Object> nb = this.noWarpBlocks_cache;
+        if (nb == null)
+            this.noWarpBlocks_cache = nb = initNoWarpBlocks();
+        return nb.containsKey(bs.getBlock());
+    }
+
+    /**
+     *
      * @param mob
      * @param pacify
      * @return
@@ -577,6 +617,31 @@ public class WandsCore {
             }
         }
         return f;
+    }
+
+    /**
+     *
+     * @return
+     */
+    private Map<Block, Object> initNoWarpBlocks() {
+        // Built-in. For now.
+        final String[] noWarpBocks = { "biomesoplenty:poison", "biomesoplenty:sand", "biomesoplenty:blood", "biomesoplenty:blue_fire" };
+        final IForgeRegistry<Block> registry = GameRegistry.findRegistry(Block.class);
+        Map<Block, Object> out = null;
+        if (registry != null) {
+            Block b = null;
+            for (String nme : noWarpBocks) {
+                b = registry.getValue(new ResourceLocation(nme));
+                if ((b != null) && (b != Blocks.AIR)) {
+                    if (out == null)
+                        out = new IdentityHashMap<>(8);
+                    out.put(b, null);
+                }
+            }
+        }
+        if (out == null)
+            return Collections.emptyMap();
+        return out;
     }
 
     /**

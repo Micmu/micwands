@@ -8,6 +8,7 @@ import net.minecraft.entity.monster.EntitySnowman;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.text.ChatType;
 import net.minecraft.util.text.ITextComponent;
@@ -16,6 +17,7 @@ import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.event.LootTableLoadEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.AnimalTameEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingSetAttackTargetEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
@@ -60,15 +62,13 @@ final class EventHandlers {
      */
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onPlayerEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        if ((event.getSide() == Side.SERVER) && (event.getHand() == EnumHand.MAIN_HAND) && (event.getTarget() instanceof EntityLivingBase)) {
+        if ((event.getSide() == Side.SERVER) && (event.getHand() == EnumHand.MAIN_HAND) && (event.getTarget() instanceof EntityLivingBase) && !event.isCanceled()) {
             final ItemStack stack = event.getEntityPlayer().getHeldItem(EnumHand.MAIN_HAND);
             if (!stack.isEmpty()) {
                 final Item item = stack.getItem();
-                if (item instanceof ItemWand) {
-                    if (item.itemInteractionForEntity(stack, event.getEntityPlayer(), (EntityLivingBase)event.getTarget(), EnumHand.MAIN_HAND)) {
-                        event.setResult(Result.DENY);
-                        event.setCanceled(true);
-                    }
+                if ((item instanceof ItemWand) && item.itemInteractionForEntity(stack, event.getEntityPlayer(), (EntityLivingBase)event.getTarget(), EnumHand.MAIN_HAND)) {
+                    event.setResult(Result.DENY);
+                    event.setCanceled(true);
                 }
             }
         }
@@ -80,13 +80,40 @@ final class EventHandlers {
      */
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onGolemSetAttackTarget(LivingSetAttackTargetEvent event) {
-        if ((event.getTarget() != null) && (event.getEntityLiving() instanceof EntityGolem)) {
+        if ((event.getTarget() != null) && (event.getEntityLiving() instanceof EntityGolem) && !event.isCanceled()) {
             EntityGolem golem = (EntityGolem)event.getEntityLiving();
             if (((golem instanceof EntityIronGolem) || (golem instanceof EntitySnowman)) && WandsCore.getInstance().isEnfeebled(event.getTarget())) {
                 if (golem.getAttackTarget() != null)
                     golem.setAttackTarget(null);
                 if (golem.getRevengeTarget() != null)
                     golem.setRevengeTarget(null);
+            }
+        }
+    }
+
+    /**
+     *
+     * @param event
+     */
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onEntityHurt(LivingHurtEvent event) {
+        if (!event.getEntityLiving().world.isRemote && ((event.getSource() == DamageSource.FALL) || (event.getSource() == DamageSource.IN_WALL)) && !event.isCanceled() && (event.getAmount() > 0.0F)
+                && WandsCore.getInstance().isFollowing(event.getEntityLiving())) {
+            // FOLLOWING MOBS take fall/suffocation damage
+            if (event.getSource() == DamageSource.FALL) {
+                // Absorb 4 points of fall damage from following mobs. Helps them out a bit.
+                event.setAmount(event.getAmount() - 4.0F);
+                if (event.getAmount() <= 0.0F) {
+                    event.setAmount(0.0F);
+                    event.setResult(Result.DENY);
+                    event.setCanceled(true);
+                    return;
+                }
+            }
+            if (WandsCore.getInstance().isNegateWarpDamage((EntityLiving)event.getEntityLiving())) {
+                // Make mob invulnerable to fall/suffocation damage for few ticks after teleport. Helps them a bit.
+                event.setResult(Result.DENY);
+                event.setCanceled(true);
             }
         }
     }
