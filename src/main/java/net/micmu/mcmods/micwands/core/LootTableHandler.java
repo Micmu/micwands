@@ -78,6 +78,8 @@ public class LootTableHandler {
                 return INJECT_LVL_0;
             } else if (matchName(res, "chests", "library")) {
                 return INJECT_LVL_0;
+            } else if (matchName(res, "chests", "brewer")) {
+                return INJECT_LVL_0;
             }
         }
         return null;

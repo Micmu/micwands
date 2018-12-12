@@ -203,6 +203,21 @@ final class AIMobFollowPlayer extends EntityAIBase {
 
     /**
      *
+     * @param toPlayer
+     * @return
+     */
+    public boolean warpToPlayer(EntityPlayer toPlayer) {
+        if (!isCreatureReady())
+            return false;
+        EntityLiving c = this.creature;
+        EntityPlayer o = getOwnerPlayer();
+        if ((o == null) || (o != toPlayer) || o.isSpectator() || !o.isEntityAlive())
+            return false;
+        return attemptShortTeleport();
+    }
+
+    /**
+     *
      * @return
      */
     private boolean attemptShortTeleport() {

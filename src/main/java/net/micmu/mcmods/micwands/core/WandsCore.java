@@ -6,6 +6,9 @@ import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import com.google.common.base.Predicate;
 
 import net.minecraft.block.Block;
@@ -51,7 +54,6 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
 import net.minecraftforge.registries.IForgeRegistry;
 
 import net.micmu.mcmods.micwands.MicWandsMod;
@@ -219,6 +221,20 @@ public class WandsCore {
     /**
      *
      * @param entity
+     * @param player
+     * @return
+     */
+    public boolean isFollowingPlayer(EntityLivingBase entity, EntityPlayer player) {
+        if (canFollowing(entity)) {
+            String s = entity.getEntityData().getString(NBT_KEY_S_FOLLOW_PLAYER);
+            return (s != null) && !s.isEmpty() && s.equals(player.getCachedUniqueIdString());
+        }
+        return false;
+    }
+
+    /**
+     *
+     * @param entity
      * @return
      */
     public boolean canFollowing(EntityLivingBase entity) {
@@ -318,6 +334,22 @@ public class WandsCore {
     public void initializeNewTamedAnimal(EntityAnimal animal, EntityPlayer player) {
         if (isFollowing(animal) && (!(animal instanceof AbstractHorse) || (player == null) || player.getCachedUniqueIdString().equals(animal.getEntityData().getString(NBT_KEY_S_FOLLOW_PLAYER))))
             doFollowing(animal, player, true);
+    }
+
+    /**
+     *
+     * @param creature
+     * @return
+     */
+    public boolean warpToPlayerFollowing(EntityLivingBase creature, EntityPlayer player) {
+        if (isFollowingPlayer(creature, player)) {
+            EntityAITasks tasks = ((EntityLiving)creature).tasks;
+            if (tasks != null)
+                for (EntityAITasks.EntityAITaskEntry e : tasks.taskEntries)
+                    if (e.action.getClass() == AIMobFollowPlayer.class)
+                        return ((AIMobFollowPlayer)e.action).warpToPlayer(player);
+        }
+        return false;
     }
 
     /**
@@ -606,7 +638,7 @@ public class WandsCore {
         Field f = this.f_targetEntitySelector;
         if (f == null) {
             try {
-                f = ReflectionHelper.findField(EntityAINearestAttackableTarget.class, "field_82643_g", "targetEntitySelector");
+                f = findField(EntityAINearestAttackableTarget.class, "targetEntitySelector", "field_82643_g");
                 failed_targetEntitySelector = false;
                 this.f_targetEntitySelector = f;
             } catch (Exception e) {
@@ -652,6 +684,31 @@ public class WandsCore {
     private void logGolemAIError(String s, Throwable e) {
         MicWandsMod.LOG.error("Unable to " + s + " field targetEntitySelector in EntityAINearestAttackableTarget AI task class. Minecraft/Forge compatibility issue?", e);
         MicWandsMod.LOG.error("As a result, Iron Golems might act confused around enfeebled and pacified mobs (but not attack them).");
+    }
+
+    /**
+     *
+     * @param clazz
+     * @param fieldName
+     * @param fieldObfName
+     * @return
+     * @throws NoSuchFieldException
+     * @throws SecurityException
+     */
+    @Nonnull
+    private Field findField(@Nonnull Class<?> clazz, @Nonnull String fieldName, @Nullable String fieldObfName) throws NoSuchFieldException, SecurityException {
+        Field f;
+        if (fieldObfName != null) {
+            try {
+                f = clazz.getDeclaredField(fieldObfName);
+                f.setAccessible(true);
+                return f;
+            } catch (Exception e) {
+            }
+        }
+        f = clazz.getDeclaredField(fieldName);
+        f.setAccessible(true);
+        return f;
     }
 
     /**
