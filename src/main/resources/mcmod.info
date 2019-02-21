@@ -6,7 +6,7 @@
   "version": "${version}",
   "mcversion": "1.12",
   "url": "https://www.curseforge.com/minecraft/mc-mods/mob-control-wands",
-  "updateUrl": "",
+  "updateUrl": "https://raw.githubusercontent.com/Micmu/micwands/master/update.json",
   "authorList": ["Micmu"],
   "credits": "Sir Micmu",
   "logoFile": "assets/micwands/textures/logo.png",
